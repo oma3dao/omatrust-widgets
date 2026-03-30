@@ -1,6 +1,6 @@
-# OMATrust Review Widget
+# OMATrust Widgets
 
-Hosted OMATrust review widget MVP for OMA3.
+Hosted widget platform for OMATrust on OMA3.
 
 ## Current status
 
@@ -22,6 +22,44 @@ The current build intentionally focuses on structure, styling, and the correct p
 Legacy short paths `/create` and `/embed` currently redirect to the new namespace.
 
 The builder UI does not ask for a reviewer wallet anymore. Wallet passthrough is demonstrated in the host example and optional JavaScript snippet instead.
+
+## Vercel strategy
+
+Long term, this repository is intended to deploy as its own Vercel project while still appearing under the main reputation host.
+
+Recommended setup:
+
+- Create a dedicated Vercel project from this repository
+- Set the Vercel Root Directory to the repository root
+- Deploy this project independently
+- Keep `reputation.omatrust.org` attached to the main reputation project
+- Add a single rewrite in the reputation project for `/widgets/:path*`
+
+Public URL strategy:
+
+- `reputation.omatrust.org/widgets/reviews/create`
+- `reputation.omatrust.org/widgets/reviews/embed`
+- `reputation.omatrust.org/widgets/reviews/examples/host`
+
+Suggested rewrite in the reputation project:
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/widgets/:path*",
+      "destination": "https://YOUR-WIDGETS-PROJECT.vercel.app/widgets/:path*"
+    }
+  ]
+}
+```
+
+Why this approach:
+
+- keeps widgets isolated from the main reputation codebase
+- supports multiple future widget families under one namespace
+- only requires one rewrite rule in the reputation project
+- preserves the long-term public URL structure under `reputation.omatrust.org`
 
 ## Scripts
 
