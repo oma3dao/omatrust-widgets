@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@oma3/omatrust':
-        specifier: file:../omatrust-sdk
-        version: file:../omatrust-sdk(ethers@6.16.0)
+        specifier: 0.1.0-alpha.7
+        version: 0.1.0-alpha.7
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -293,8 +293,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@oma3/omatrust@file:../omatrust-sdk':
-    resolution: {directory: ../omatrust-sdk, type: directory}
+  '@oma3/omatrust@0.1.0-alpha.7':
+    resolution: {integrity: sha512-JvBKU3yKpXD6R1BqwiHSs7+N64CnioB2M2LIqeGit9Vkle3gVQr6qjA0CkVwpblTn2G7uktlMT+xuS/BYhDeGQ==}
     peerDependencies:
       '@ethereum-attestation-service/eas-sdk': ^2.4.0
       ethers: ^6.0.0
@@ -926,10 +926,9 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@oma3/omatrust@file:../omatrust-sdk(ethers@6.16.0)':
+  '@oma3/omatrust@0.1.0-alpha.7':
     dependencies:
       canonicalize: 2.1.0
-      ethers: 6.16.0
 
   '@swc/helpers@0.5.15':
     dependencies:

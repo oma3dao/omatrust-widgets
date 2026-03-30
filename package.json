@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@oma3/omatrust": "file:../omatrust-sdk",
+    "@oma3/omatrust": "0.1.0-alpha.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
