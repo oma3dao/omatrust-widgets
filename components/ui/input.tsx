@@ -5,16 +5,20 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label?: string
   hint?: string
   error?: string
+  required?: boolean
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, hint, error, id, ...props }, ref) => {
+  ({ className, label, hint, error, required, id, ...props }, ref) => {
     const inputId = id ?? React.useId()
 
     return (
       <label className="flex flex-col gap-2" htmlFor={inputId}>
         {label ? (
-          <span className="text-sm font-medium text-foreground">{label}</span>
+          <span className="text-sm font-medium text-foreground">
+            {label}
+            {required ? <span className="ml-1 text-danger">*</span> : null}
+          </span>
         ) : null}
         <input
           ref={ref}

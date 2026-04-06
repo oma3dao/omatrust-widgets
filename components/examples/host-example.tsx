@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ExternalLink, Gamepad2, Link2, Wallet } from "lucide-react"
+import { ExternalLink, Globe, Link2, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -21,10 +21,9 @@ const matchingWallet = "0x1111111111111111111111111111111111111111"
 const mismatchWallet = "0x2222222222222222222222222222222222222222"
 
 const sampleValues: BuilderFormValues = {
-  gameUrl: "play.acmequest.com",
-  gameName: "Acme Quest",
+  appUrl: "play.acmequest.com",
+  appName: "Acme Quest",
   iconUrl: "",
-  slug: "",
   contractAddress: "0x1111111111111111111111111111111111111111",
   chainId: 8453,
 }
@@ -130,7 +129,7 @@ export function HostExample() {
                 </Badge>
               </div>
               <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance text-foreground">
-                See how a game site can embed the review widget and pass the current player wallet into the iframe.
+                See how a web3 app can embed the review widget and pass the current user wallet into the iframe.
               </h1>
               <p className="max-w-3xl text-base leading-7 text-muted-foreground">
                 This example intentionally keeps the host wallet logic simple. In production, replace the mock wallet state with your preferred wallet library or your existing site session.
@@ -139,7 +138,7 @@ export function HostExample() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Mock game shell</CardTitle>
+                <CardTitle>Mock app shell</CardTitle>
                 <CardDescription>
                   The host site decides whether it passes a wallet to the iframe. The widget then uses that wallet for proof checking.
                 </CardDescription>
@@ -149,14 +148,14 @@ export function HostExample() {
                   <div className="flex flex-wrap items-start justify-between gap-6">
                     <div className="max-w-xl space-y-3">
                       <div className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-cyan-200">
-                        <Gamepad2 className="size-3.5" />
+                        <Globe className="size-3.5" />
                         Acme Quest
                       </div>
                       <h2 className="text-3xl font-semibold tracking-tight">
-                        The host page already knows who the player is.
+                        The host page already knows who the user is.
                       </h2>
                       <p className="text-sm leading-7 text-slate-300">
-                        In a real game site, this wallet would likely come from the game’s own auth or wallet connection flow. The embed just receives the current player wallet as a query param.
+                        In a real web3 app, this wallet would likely come from the app’s own auth or wallet connection flow. The embed just receives the current user wallet as a query param.
                       </p>
                     </div>
                     <div className="rounded-[24px] border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
@@ -217,7 +216,7 @@ export function HostExample() {
                       <div className="flex items-start gap-3">
                         <Wallet className="mt-0.5 size-4 text-primary" />
                         <div>
-                          <p className="font-medium text-foreground">Player wallet</p>
+                          <p className="font-medium text-foreground">User wallet</p>
                           <p className="break-all font-mono">
                             {useWalletParam && selectedWallet ? selectedWallet : "No wallet passed to iframe"}
                           </p>
@@ -258,7 +257,7 @@ export function HostExample() {
                   label="Dynamic wallet injection"
                   code={`const iframe = document.getElementById("omatrust-widget");
 const url = new URL(iframe.src);
-url.searchParams.set("wallet", playerWalletAddress);
+url.searchParams.set("wallet", userWalletAddress);
 iframe.src = url.toString();`}
                   language="js"
                 />

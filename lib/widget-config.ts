@@ -2,14 +2,14 @@ import { buildDidWeb, normalizeDomain } from "@oma3/omatrust/identity"
 import { builderFormSchema, type BuilderFormValues } from "@/lib/validation"
 
 export type WidgetConfig = {
-  gameUrl: string
+  appUrl: string
   domain: string | null
   subjectDid: string | null
-  gameName?: string
+  appName?: string
   iconUrl?: string
-  slug?: string
   contractAddress: string
   chainId: number
+  rpcUrl?: string
   wallet?: string
 }
 
@@ -45,15 +45,23 @@ export function coerceDomain(input: string) {
     ? trimmed
     : `https://${trimmed}`
 
+  let hostname: string
   try {
     const url = new URL(candidate)
-    return normalizeDomain(url.hostname)
+    hostname = url.hostname
   } catch {
-    try {
-      return normalizeDomain(trimmed)
-    } catch {
-      return null
-    }
+    hostname = trimmed
+  }
+
+  // Strip www. prefix before normalizing — www.example.com and example.com
+  // should produce the same did:web. This is a local workaround until the
+  // SDK's normalizeDomain handles this (see omatrust-sdk issue).
+  hostname = hostname.replace(/^www\./i, "")
+
+  try {
+    return normalizeDomain(hostname)
+  } catch {
+    return null
   }
 }
 
@@ -70,43 +78,34 @@ export function deriveSubjectDid(input: string) {
   }
 }
 
-export function slugify(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
-
 export function normalizeBuilderValues(values: BuilderFormValues): WidgetConfig {
   const parsed = builderFormSchema.parse(values)
-  const domain = coerceDomain(parsed.gameUrl)
-  const subjectDid = deriveSubjectDid(parsed.gameUrl)
-  const generatedSlug = parsed.slug || (parsed.gameName ? slugify(parsed.gameName) : "")
+  const domain = coerceDomain(parsed.appUrl)
+  const subjectDid = deriveSubjectDid(parsed.appUrl)
 
   return {
-    gameUrl: parsed.gameUrl.trim(),
+    appUrl: parsed.appUrl.trim(),
     domain,
     subjectDid,
-    gameName: parsed.gameName || undefined,
+    appName: parsed.appName || undefined,
     iconUrl: parsed.iconUrl || undefined,
-    slug: generatedSlug || undefined,
     contractAddress: parsed.contractAddress,
     chainId: parsed.chainId,
+    rpcUrl: parsed.rpcUrl || undefined,
   }
 }
 
 export function buildWidgetQuery(config: WidgetConfig) {
   const params = new URLSearchParams({
-    url: config.gameUrl,
+    url: config.appUrl,
     contract: config.contractAddress,
     chainId: String(config.chainId),
   })
 
-  if (config.gameName) params.set("name", config.gameName)
+  if (config.appName) params.set("name", config.appName)
   if (config.iconUrl) params.set("icon", config.iconUrl)
   if (config.wallet) params.set("wallet", config.wallet)
-  if (config.slug) params.set("slug", config.slug)
+  if (config.rpcUrl) params.set("rpc", config.rpcUrl)
 
   return params
 }
@@ -143,11 +142,11 @@ iframe.src = url.toString();`
 }
 
 export function parseWidgetConfigFromSearch(searchParams: URLSearchParams): WidgetConfig | null {
-  const gameUrl = searchParams.get("url")
+  const appUrl = searchParams.get("url")
   const contractAddress = searchParams.get("contract")
   const chainIdValue = searchParams.get("chainId")
 
-  if (!gameUrl || !contractAddress || !chainIdValue) {
+  if (!appUrl || !contractAddress || !chainIdValue) {
     return null
   }
 
@@ -157,14 +156,14 @@ export function parseWidgetConfigFromSearch(searchParams: URLSearchParams): Widg
   }
 
   return {
-    gameUrl,
-    domain: coerceDomain(gameUrl),
-    subjectDid: deriveSubjectDid(gameUrl),
-    gameName: searchParams.get("name") || undefined,
+    appUrl,
+    domain: coerceDomain(appUrl),
+    subjectDid: deriveSubjectDid(appUrl),
+    appName: searchParams.get("name") || undefined,
     iconUrl: searchParams.get("icon") || undefined,
-    slug: searchParams.get("slug") || undefined,
     contractAddress,
     chainId,
+    rpcUrl: searchParams.get("rpc") || undefined,
     wallet: searchParams.get("wallet") || undefined,
   }
 }

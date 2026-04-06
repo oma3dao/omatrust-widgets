@@ -52,7 +52,7 @@ export async function EmbedPageShell({
           </CardHeader>
           <CardContent className="space-y-4">
             <Notice title="Expected shape">
-              Example: <code>{REVIEW_WIDGET_EMBED_PATH}?url=mygame.com&amp;contract=0x...&amp;chainId=8453</code>
+              Example: <code>{REVIEW_WIDGET_EMBED_PATH}?url=myapp.com&amp;contract=0x...&amp;chainId=8453</code>
             </Notice>
           </CardContent>
         </Card>
