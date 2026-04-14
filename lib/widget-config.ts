@@ -9,15 +9,20 @@ export type WidgetConfig = {
   iconUrl?: string
   contractAddress: string
   chainId: number
-  rpcUrl?: string
+  explorerApiUrl?: string
   wallet?: string
 }
 
+export type SigningMode = "basic" | "integrated"
+
 export type WidgetQueryConfig = WidgetConfig & {
   queryString: string
-  iframeSnippet: string
-  jsSnippet: string
   widgetUrl: string
+  snippets: {
+    iframe: string
+    extra: string
+    installCmd?: string
+  }
 }
 
 export const REVIEW_WIDGET_CREATE_PATH = "/widgets/reviews/create"
@@ -91,7 +96,7 @@ export function normalizeBuilderValues(values: BuilderFormValues): WidgetConfig 
     iconUrl: parsed.iconUrl || undefined,
     contractAddress: parsed.contractAddress,
     chainId: parsed.chainId,
-    rpcUrl: parsed.rpcUrl || undefined,
+    explorerApiUrl: parsed.explorerApiUrl || undefined,
   }
 }
 
@@ -105,39 +110,70 @@ export function buildWidgetQuery(config: WidgetConfig) {
   if (config.appName) params.set("name", config.appName)
   if (config.iconUrl) params.set("icon", config.iconUrl)
   if (config.wallet) params.set("wallet", config.wallet)
-  if (config.rpcUrl) params.set("rpc", config.rpcUrl)
+  if (config.explorerApiUrl) params.set("explorer", config.explorerApiUrl)
 
   return params
 }
 
 export function createWidgetArtifacts(
   values: BuilderFormValues,
-  options?: { baseUrl?: string }
+  options?: { baseUrl?: string; signingMode?: SigningMode }
 ): WidgetQueryConfig {
   const config = normalizeBuilderValues(values)
+  const mode = options?.signingMode ?? "basic"
   const params = buildWidgetQuery(config)
   const queryString = params.toString()
   const widgetUrl = `${getBaseUrl(options?.baseUrl)}${REVIEW_WIDGET_EMBED_PATH}?${queryString}`
-  const iframeSnippet = `<iframe
+
+  const iframeTag = `<iframe
   id="omatrust-widget"
   src="${widgetUrl}"
-  width="400"
-  height="640"
-  style="border:0; width:100%; max-width:400px; background:transparent;"
+  width="440"
+  height="760"
+  style="border:0; width:100%; max-width:440px; background:transparent;"
   loading="lazy"
   title="OMATrust Review Widget"
 ></iframe>`
-  const jsSnippet = `const iframe = document.getElementById("omatrust-widget");
+
+  let snippets: WidgetQueryConfig["snippets"]
+
+  if (mode === "integrated") {
+    snippets = {
+      iframe: iframeTag,
+      installCmd: "npm install @oma3/omatrust",
+      extra: `import { createSigningBridge } from "@oma3/omatrust/widgets";
+
+const iframe = document.getElementById("omatrust-widget");
 const url = new URL(iframe.src);
 url.searchParams.set("wallet", userWalletAddress);
-iframe.src = url.toString();`
+iframe.src = url.toString();
+
+const bridge = await createSigningBridge({
+  iframeId: "omatrust-widget",
+  signTypedData: async (domain, types, message) => {
+    // Replace with your wallet's signTypedData call
+    return await signer.signTypedData(domain, types, message);
+  },
+});`,
+    }
+  } else {
+    snippets = {
+      iframe: iframeTag,
+      extra: `<!-- Optional: inject the user's wallet address for proof checking -->
+<script>
+const iframe = document.getElementById("omatrust-widget");
+const url = new URL(iframe.src);
+url.searchParams.set("wallet", userWalletAddress);
+iframe.src = url.toString();
+</script>`,
+    }
+  }
 
   return {
     ...config,
     queryString,
     widgetUrl,
-    iframeSnippet,
-    jsSnippet,
+    snippets,
   }
 }
 
@@ -163,7 +199,7 @@ export function parseWidgetConfigFromSearch(searchParams: URLSearchParams): Widg
     iconUrl: searchParams.get("icon") || undefined,
     contractAddress,
     chainId,
-    rpcUrl: searchParams.get("rpc") || undefined,
+    explorerApiUrl: searchParams.get("explorer") || undefined,
     wallet: searchParams.get("wallet") || undefined,
   }
 }

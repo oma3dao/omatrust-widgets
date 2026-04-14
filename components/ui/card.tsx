@@ -1,20 +1,20 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-export function Card({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn(
-        "surface-panel rounded-[24px] border border-white/80 shadow-panel",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+export const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "surface-panel rounded-[24px] border border-white/80 shadow-panel",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
 
 export function CardHeader({
   className,

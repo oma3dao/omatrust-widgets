@@ -17,6 +17,7 @@ import {
   REVIEW_WIDGET_HOST_EXAMPLE_PATH,
   createWidgetArtifacts,
   type WidgetQueryConfig,
+  type SigningMode,
 } from "@/lib/widget-config"
 
 const emptyValues: BuilderFormValues = {
@@ -25,7 +26,7 @@ const emptyValues: BuilderFormValues = {
   iconUrl: "",
   contractAddress: "",
   chainId: 0,
-  rpcUrl: "",
+  explorerApiUrl: "",
 }
 
 type FormErrors = Partial<Record<keyof BuilderFormValues, string>>
@@ -45,16 +46,25 @@ const emptyArtifacts: WidgetQueryConfig = {
   contractAddress: "",
   chainId: 0,
   queryString: "",
-  iframeSnippet: "",
-  jsSnippet: "",
   widgetUrl: "",
+  snippets: { iframe: "", extra: "" },
 }
 
 export function CreateBuilder() {
   const [values, setValues] = React.useState<BuilderFormValues>(emptyValues)
   const [errors, setErrors] = React.useState<FormErrors>({})
-  const [artifacts, setArtifacts] = React.useState<WidgetQueryConfig>(emptyArtifacts)
   const [hasGenerated, setHasGenerated] = React.useState(false)
+  const [validatedValues, setValidatedValues] = React.useState<BuilderFormValues | null>(null)
+  const [signingMode, setSigningMode] = React.useState<SigningMode>("basic")
+
+  // Recompute snippets whenever the signing mode tab changes
+  const artifacts = React.useMemo<WidgetQueryConfig>(() => {
+    if (!validatedValues) return emptyArtifacts
+    return createWidgetArtifacts(validatedValues, {
+      baseUrl: typeof window !== "undefined" ? window.location.origin : DEFAULT_PUBLIC_ORIGIN,
+      signingMode,
+    })
+  }, [validatedValues, signingMode])
 
   function updateValue<Key extends keyof BuilderFormValues>(
     key: Key,
@@ -75,13 +85,13 @@ export function CreateBuilder() {
         iconUrl: fieldErrors.iconUrl?.[0],
         contractAddress: fieldErrors.contractAddress?.[0],
         chainId: fieldErrors.chainId?.[0],
-        rpcUrl: fieldErrors.rpcUrl?.[0],
+        explorerApiUrl: fieldErrors.explorerApiUrl?.[0],
       })
       return
     }
 
     setErrors({})
-    setArtifacts(createWidgetArtifacts(parsed.data, { baseUrl: window.location.origin }))
+    setValidatedValues(parsed.data)
     setHasGenerated(true)
   }
 
@@ -155,7 +165,7 @@ export function CreateBuilder() {
                     <div className="md:col-span-2">
                       <Input
                         label="App URL or domain"
-                        placeholder="myapp.com"
+                        placeholder="exampleapp.com"
                         required
                         value={values.appUrl}
                         onChange={(event) => updateValue("appUrl", event.target.value)}
@@ -172,7 +182,7 @@ export function CreateBuilder() {
                     />
                     <Input
                       label="Chain ID"
-                      placeholder="8453"
+                      placeholder="1"
                       required
                       value={values.chainId ? String(values.chainId) : ""}
                       onChange={(event) => updateValue("chainId", Number(event.target.value))}
@@ -180,7 +190,7 @@ export function CreateBuilder() {
                     />
                     <Input
                       label="App name"
-                      placeholder="Acme Quest"
+                      placeholder="Example App"
                       value={values.appName}
                       onChange={(event) => updateValue("appName", event.target.value)}
                       error={errors.appName}
@@ -193,14 +203,14 @@ export function CreateBuilder() {
                       error={errors.iconUrl}
                     />
                     <Input
-                      label="RPC endpoint"
-                      placeholder="https://rpc.example.com"
-                      value={values.rpcUrl ?? ""}
-                      onChange={(event) => updateValue("rpcUrl", event.target.value)}
-                      hint="Optional. Only needed if the proof check fails for your chain."
-                      error={errors.rpcUrl}
+                      label="Explorer API URL"
+                      placeholder="https://explorer.examplechain.com/api"
+                      value={values.explorerApiUrl ?? ""}
+                      onChange={(event) => updateValue("explorerApiUrl", event.target.value)}
+                      hint="Optional. Full Etherscan-compatible API URL including /api path."
+                      error={errors.explorerApiUrl}
                     />
-                  </div>
+                    </div>
 
                   <div className="flex flex-wrap items-center gap-3">
                     <Button type="submit">
@@ -213,7 +223,7 @@ export function CreateBuilder() {
                       onClick={() => {
                         setValues(emptyValues)
                         setErrors({})
-                        setArtifacts(emptyArtifacts)
+                        setValidatedValues(null)
                         setHasGenerated(false)
                       }}
                     >
@@ -228,14 +238,79 @@ export function CreateBuilder() {
               <>
                 <Card className="relative overflow-hidden">
                   <CardHeader>
-                    <CardTitle>Code Snippets</CardTitle>
+                    <CardTitle>Embed snippets</CardTitle>
                     <CardDescription>
-                      Copy the iframe snippet into your site's HTML. Use the wallet injection snippet if your site already has the user's wallet address.
+                      Choose the signing mode that matches your app, then copy the snippets.{" "}
+                      <a
+                        href="https://docs.omatrust.org/widgets/overview#signing-modes"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        Which mode should I use?
+                      </a>
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <CodeBlock label="Iframe snippet" code={artifacts.iframeSnippet} language="html" />
-                    <CodeBlock label="Optional wallet injection snippet" code={artifacts.jsSnippet} language="js" />
+                    <div className="flex border-b">
+                      <button
+                        type="button"
+                        onClick={() => setSigningMode("basic")}
+                        className={`px-4 py-2 text-sm font-medium transition border-b-2 -mb-px ${
+                          signingMode === "basic"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Basic mode
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSigningMode("integrated")}
+                        className={`px-4 py-2 text-sm font-medium transition border-b-2 -mb-px ${
+                          signingMode === "integrated"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Integrated mode
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      {signingMode === "basic"
+                        ? "For apps where users connect standard crypto wallets (MetaMask, WalletConnect, Safe). Paste the snippet — no SDK needed."
+                        : "For apps with social login, custodial, or embedded wallets. Requires the @oma3/omatrust SDK."}
+                    </p>
+
+                    {artifacts.snippets.installCmd ? (
+                      <CodeBlock label="Step 1: Install the SDK" code={artifacts.snippets.installCmd} language="bash" />
+                    ) : null}
+                    <CodeBlock
+                      label={signingMode === "basic"
+                        ? "Step 1: Paste into your HTML where you want the widget to appear"
+                        : "Step 2: Paste the iframe into your HTML where you want the widget to appear"}
+                      code={artifacts.snippets.iframe}
+                      language="html"
+                    />
+                    <CodeBlock
+                      label={signingMode === "basic"
+                        ? "Step 2 (optional): Add to your JavaScript to pass the connected wallet for proof checking"
+                        : "Step 3: Add to your app's JavaScript — connects the widget to your wallet"}
+                      code={artifacts.snippets.extra}
+                      language={signingMode === "basic" ? "html" : "ts"}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      For a working reference implementation, see the{" "}
+                      <a
+                        href="https://github.com/oma3dao/rep-attestation-frontend/blob/main/src/components/review-widget-modal.tsx"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        reputation frontend source
+                      </a>.
+                    </p>
                     <div className="flex flex-wrap gap-3">
                       <a href={artifacts.widgetUrl} target="_blank" rel="noreferrer">
                         <Button type="button" variant="outline">

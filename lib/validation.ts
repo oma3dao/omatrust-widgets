@@ -10,13 +10,14 @@ export const builderFormSchema = z.object({
   iconUrl: z.string().url("Enter a valid icon URL").optional().or(z.literal("")),
   contractAddress: evmAddressSchema,
   chainId: z.coerce.number().int().positive("Enter a valid chain ID"),
-  rpcUrl: z.string().url("Enter a valid RPC URL").optional().or(z.literal("")),
+  explorerApiUrl: z.string().url("Enter a valid explorer API URL").optional().or(z.literal("")),
 })
 
 export const proofCheckRequestSchema = z.object({
   walletAddress: evmAddressSchema,
   contractAddress: evmAddressSchema,
   chainId: z.number().int().positive(),
+  explorerApiUrl: z.string().url().optional(),
 })
 
 export type BuilderFormValues = z.infer<typeof builderFormSchema>
