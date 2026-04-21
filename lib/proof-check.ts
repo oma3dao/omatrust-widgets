@@ -28,8 +28,9 @@ export type ProofCheckInput = {
 /**
  * Validate that a URL is safe to fetch server-side.
  * Rejects IP addresses, localhost, and private/reserved hostnames.
+ * Exported for security regression tests (SSRF).
  */
-function isSafeExplorerUrl(urlString: string): boolean {
+export function isSafeExplorerUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString)
 

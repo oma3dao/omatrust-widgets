@@ -1,5 +1,5 @@
-import { HostExample } from "@/components/examples/host-example"
+import { SepoliaHostDemo } from "@/components/examples/sepolia-host-demo"
 
 export default function HostExamplePage() {
-  return <HostExample />
+  return <SepoliaHostDemo />
 }
