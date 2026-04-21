@@ -18,6 +18,7 @@ Provide an embeddable iframe widget that lets users submit on-chain reviews for 
 | Signing protocol spec     | [omatrust-sdk/docs/features/widget-signing-bridge/spec.md](https://github.com/oma3dao/omatrust-sdk/blob/main/docs/features/widget-signing-bridge/spec.md) |
 | Trust policy endpoint     | https://api.omatrust.org/v1/trust-policy                                             |
 | EAS attestation API docs  | https://docs.omatrust.org/api/delegated-attestation                                  |
+| Security test cases (QA)  | [docs/testing/review-widget-security-tests.md](../../testing/review-widget-security-tests.md) |
 
 ## Widget builder
 
