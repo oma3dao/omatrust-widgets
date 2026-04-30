@@ -192,4 +192,12 @@ After deployment, the public URLs resolve like this:
 
 The widgets project can also be accessed directly at its `.vercel.app` URL for testing, but production embed snippets should use the `reputation.omatrust.org` URLs.
 
+### Testing
+
+This repository uses **npm** (`package-lock.json`) as the package manager.
+
+- Unit tests: `npm test`
+- Browser smoke (Playwright): `npx playwright install chromium` once, then `npm run test:e2e` (starts `next dev` automatically unless a server is already listening on port 3000).
+- CI-style (local or pipeline): `npm run test:ci` (runs Vitest then Playwright). GitHub Actions runs the same steps in `.github/workflows/ci.yml`.
+
 <!-- TODO: Add developer instructions for contract-to-did:web binding attestation setup -->
