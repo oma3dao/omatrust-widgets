@@ -14,8 +14,9 @@ import {
   createTxInteractionProof,
 } from "@oma3/omatrust/reputation"
 import type { Hex } from "@oma3/omatrust/reputation"
-import { verifyTypedData } from "ethers"
 import { getActiveChain } from "@/lib/chains"
+
+export { recoverSigner } from "@/lib/recover-signer"
 
 const USER_REVIEW_SCHEMA_STRING =
   "string subject, string version, uint256 ratingValue, string reviewBody, string[] screenshotUrls, string[] proofs"
@@ -98,18 +99,6 @@ export async function prepareReviewAttestation(
       message: prepared.typedData.message as Record<string, unknown>,
     },
   }
-}
-
-/**
- * Recover the signer address from an EIP-712 signature.
- */
-export function recoverSigner(
-  domain: Record<string, unknown>,
-  types: Record<string, Array<{ name: string; type: string }>>,
-  message: Record<string, unknown>,
-  signature: string
-): string {
-  return verifyTypedData(domain, types, message, signature)
 }
 
 /**

@@ -17,6 +17,7 @@ import {
   type PreparedReview,
 } from "@/lib/attestation"
 import { cn } from "@/lib/utils"
+import { getExpectedHostOriginFromReferrer, isTrustedHostSignatureMessage } from "@/lib/signing-bridge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -119,16 +120,34 @@ function requestHostSignature(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const id = crypto.randomUUID()
+    const expectedHostOrigin = getExpectedHostOriginFromReferrer(document.referrer)
 
     function handleMessage(event: MessageEvent) {
-      if (event.data?.id !== id) return
-      if (event.data?.type === "omatrust:signature") {
+      if (
+        !isTrustedHostSignatureMessage({
+          data: event.data ?? {},
+          expectedId: id,
+          source: event.source,
+          parentWindow: window.parent,
+          origin: event.origin,
+          expectedHostOrigin,
+        })
+      ) {
+        return
+      }
+
+      if (event.data.type === "omatrust:signature") {
         cleanup()
+        if (typeof event.data.signature !== "string" || !event.data.signature.startsWith("0x")) {
+          reject(new Error("Host returned an invalid signature payload"))
+          return
+        }
         resolve(event.data.signature)
       }
-      if (event.data?.type === "omatrust:signatureError") {
+      if (event.data.type === "omatrust:signatureError") {
         cleanup()
-        reject(new Error(event.data.error || "Host signing failed"))
+        const error = typeof event.data.error === "string" ? event.data.error : "Host signing failed"
+        reject(new Error(error))
       }
     }
 
