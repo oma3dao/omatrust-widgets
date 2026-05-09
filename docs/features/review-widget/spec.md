@@ -16,7 +16,7 @@ Provide an embeddable iframe widget that lets users submit on-chain reviews for 
 | Developer docs: Basic     | https://docs.omatrust.org/widgets/basic-mode                                         |
 | Developer docs: Integrated| https://docs.omatrust.org/widgets/integrated-mode                                    |
 | Signing protocol spec     | [omatrust-sdk/docs/features/widget-signing-bridge/spec.md](https://github.com/oma3dao/omatrust-sdk/blob/main/docs/features/widget-signing-bridge/spec.md) |
-| Trust policy endpoint     | https://api.omatrust.org/v1/trust-policy                                             |
+| Trust anchors endpoint    | https://api.omatrust.org/v1/trust-anchors                                            |
 | EAS attestation API docs  | https://docs.omatrust.org/api/delegated-attestation                                  |
 
 ## Widget builder
