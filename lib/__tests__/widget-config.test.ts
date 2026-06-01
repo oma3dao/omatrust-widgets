@@ -7,7 +7,6 @@ import {
   getBaseUrl,
   parseWidgetConfigFromSearch,
 } from "@/lib/widget-config"
-import { SEPOLIA_PROTOCOL_PRESETS } from "@/lib/protocol-presets"
 
 describe("coerceDomain", () => {
   it("strips www and normalizes hostname", () => {
@@ -107,23 +106,23 @@ describe("getBaseUrl", () => {
 })
 
 describe("createWidgetArtifacts", () => {
-  it("builds sepolia iframe URL for protocol preset with integrated mode snippet", () => {
-    const preset = SEPOLIA_PROTOCOL_PRESETS.uniswap
+  it("builds the iframe URL and integrated-mode snippet from config", () => {
+    const contractAddress = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"
     const artifacts = createWidgetArtifacts(
       {
-        appUrl: preset.appUrl,
-        appName: preset.appName,
-        iconUrl: preset.iconUrl ?? "",
-        contractAddress: preset.contractAddress,
-        chainId: preset.chainId,
-        explorerApiUrl: preset.explorerApiUrl ?? "",
+        appUrl: "app.example.com",
+        appName: "Example App",
+        iconUrl: "",
+        contractAddress,
+        chainId: 11155111,
+        explorerApiUrl: "https://api-sepolia.etherscan.io/api",
       },
       { baseUrl: "http://localhost:3000", signingMode: "integrated" }
     )
 
     expect(artifacts.widgetUrl).toContain("/widgets/reviews/embed?")
     expect(artifacts.widgetUrl).toContain("chainId=11155111")
-    expect(artifacts.widgetUrl).toContain(`contract=${encodeURIComponent(preset.contractAddress)}`)
+    expect(artifacts.widgetUrl).toContain(`contract=${encodeURIComponent(contractAddress)}`)
     expect(artifacts.snippets.iframe).toContain('id="omatrust-widget"')
     expect(artifacts.snippets.installCmd).toBe("npm install @oma3/omatrust")
   })

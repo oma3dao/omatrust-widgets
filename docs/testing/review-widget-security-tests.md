@@ -55,7 +55,7 @@ Per plan: **any** window can call `postMessage`. Defenses: **origin**, **source*
 |----|------|-----------------|
 | S3.1 | Host implements bridge: iframe sends `omatrust:signTypedData` with real typed data from widget. Host validates **origin** = known widget origin, **type**, EIP-712 **domain** (`EAS` / `1.4.0`), **chainId**, **schema UID**, **deadline**, wallet fields. | Host signs only if checks pass. |
 | S3.2 | Malicious **sibling iframe** posts `omatrust:signature` with a **stolen id** (if it can guess UUID). | Low probability; host should sign only for **outstanding** ids it issued after a valid request. Widget should prefer validating **`event.source === parent`** where applicable. |
-| S3.3 | Attacker page sends **fake** `omatrust:signature` with correct `id` from another tab. | Widget now enforces `requestId`, message type, `event.source === window.parent`, and host origin check when `document.referrer` is available (`lib/signing-bridge.ts`, `lib/__tests__/signing-bridge.test.ts`). |
+| S3.3 | Attacker page sends **fake** `omatrust:signature` with correct `id` from another tab. | Widget should accept a signature response only when `requestId`, message type, `event.source === window.parent`, and host origin (when `document.referrer` is available) all match. Expected behavior is captured as a pending behavioral spec in `lib/__tests__/signing-bridge.test.ts`; promote to assertions when the trust check lands. |
 | S3.4 | Widget after sign runs `recoverSigner` and compares to **claimed wallet**. | If host returns signature from **another** key, submission throws **signer mismatch** before relay (see `handleSign` in `review-widget.tsx`). EIP-712 recovery is covered by `lib/__tests__/recover-signer.test.ts`. |
 
 ---
