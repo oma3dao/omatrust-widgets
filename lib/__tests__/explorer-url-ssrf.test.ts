@@ -1,36 +1,95 @@
-import { describe, expect, it } from "vitest"
-import { isSafeExplorerUrl } from "@/lib/proof-check"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import type { Mock } from "vitest"
 
-describe("isSafeExplorerUrl (SSRF guard for proof-check fallback)", () => {
-  it("allows typical public HTTPS explorer API hosts", () => {
-    expect(isSafeExplorerUrl("https://api.basescan.org/api")).toBe(true)
-    expect(isSafeExplorerUrl("https://basescan.org/api")).toBe(true)
+vi.mock("@/lib/chains", () => ({
+  getActiveChain: vi.fn(() => ({
+    id: 66238,
+    explorerApiUrl: "https://explorer.testnet.chain.oma3.org/api",
+  })),
+}))
+
+import { checkProofOnChain } from "@/lib/proof-check"
+
+// SSRF guard for the proof-check explorer fallback — asserted through the
+// public `checkProofOnChain` boundary rather than importing the internal
+// `isSafeExplorerUrl` helper (which isn't, and shouldn't be forced to be, a
+// public export). The behavior under test: a client-provided explorer URL is
+// only fetched server-side when it is safe; unsafe URLs must never be fetched.
+//
+// Maps to threat-model section S2 in
+// docs/testing/review-widget-security-tests.md.
+
+const baseInput = {
+  walletAddress: "0x1111111111111111111111111111111111111111",
+  contractAddress: "0x2222222222222222222222222222222222222222",
+  // Deliberately NOT the mocked active chain id (66238) so the chain-config
+  // explorer fallback can't fire and muddy the fetch-count assertions.
+  chainId: 8453,
+}
+
+// A non-ok Insight response whose reason contains "Thirdweb Insight" is what
+// makes `checkProofOnChain` consider the client-provided explorer fallback.
+function mockInsightFailure(mockFetch: Mock) {
+  mockFetch.mockResolvedValueOnce(
+    new Response(JSON.stringify({ error: "unsupported chain" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    })
+  )
+}
+
+describe("proof-check explorer SSRF guard (via checkProofOnChain)", () => {
+  const mockFetch = vi.fn()
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", mockFetch)
   })
 
-  it("rejects non-HTTPS", () => {
-    expect(isSafeExplorerUrl("http://api.basescan.org/api")).toBe(false)
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    mockFetch.mockReset()
   })
 
-  it("rejects localhost and loopback hostnames", () => {
-    expect(isSafeExplorerUrl("https://localhost/api")).toBe(false)
-    expect(isSafeExplorerUrl("https://127.0.0.1/api")).toBe(false)
-  })
+  const unsafeUrls: Array<[string, string]> = [
+    ["non-HTTPS", "http://api.basescan.org/api"],
+    ["localhost", "https://localhost/api"],
+    ["loopback IPv4", "https://127.0.0.1/api"],
+    ["documentation IPv4", "https://192.0.2.1/api"],
+    ["private IPv4", "https://10.0.0.1/api"],
+    [".internal suffix", "https://metadata.internal/api"],
+    [".local suffix", "https://router.local/api"],
+    ["hostname without a dot", "https://localhosttest/api"],
+    ["userinfo disguising loopback", "https://user@127.0.0.1/api"],
+  ]
 
-  it("rejects literal IPv4 hostnames", () => {
-    expect(isSafeExplorerUrl("https://192.0.2.1/api")).toBe(false)
-    expect(isSafeExplorerUrl("https://10.0.0.1/api")).toBe(false)
-  })
+  it.each(unsafeUrls)(
+    "does not fetch an unsafe explorer URL (%s)",
+    async (_label, explorerApiUrl) => {
+      mockInsightFailure(mockFetch)
 
-  it("rejects .local and .internal", () => {
-    expect(isSafeExplorerUrl("https://metadata.internal/api")).toBe(false)
-    expect(isSafeExplorerUrl("https://router.local/api")).toBe(false)
-  })
+      const result = await checkProofOnChain({ ...baseInput, explorerApiUrl })
 
-  it("rejects hostnames without a dot (no real public domain)", () => {
-    expect(isSafeExplorerUrl("https://localhosttest/api")).toBe(false)
-  })
+      // Only the Insight call should have happened — the unsafe URL is never fetched.
+      expect(mockFetch).toHaveBeenCalledTimes(1)
+      expect(String(mockFetch.mock.calls[0][0])).toContain("insight.thirdweb.com")
+      expect(result.verified).toBe(false)
+    }
+  )
 
-  it("rejects loopback when userinfo tries to disguise the host (URL parser uses real hostname)", () => {
-    expect(isSafeExplorerUrl("https://user@127.0.0.1/api")).toBe(false)
+  const safeUrls: string[] = ["https://api.basescan.org/api", "https://basescan.org/api"]
+
+  it.each(safeUrls)("fetches a safe public HTTPS explorer URL (%s)", async (explorerApiUrl) => {
+    mockInsightFailure(mockFetch)
+    mockFetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ result: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    )
+
+    await checkProofOnChain({ ...baseInput, explorerApiUrl })
+
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(String(mockFetch.mock.calls[1][0])).toContain(new URL(explorerApiUrl).host)
   })
 })
