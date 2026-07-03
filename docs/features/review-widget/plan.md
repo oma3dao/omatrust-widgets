@@ -94,7 +94,7 @@ The widget:
 6. construct the subject DID from the game URL: `did:web:{domain}` using `buildDidWeb()` from `@oma3/omatrust/identity`
 7. build EIP-712 typed data using `@oma3/omatrust` SDK's `prepareDelegatedAttestation`
 8. ask the user to sign via `eth_signTypedData_v4`
-9. submit signed payload to `reputation.omatrust.org/api/eas/delegated-attest` via SDK's `submitDelegatedAttestation`
+9. submit signed payload to `widgets.omatrust.org/api/eas/delegated-attest` via SDK's `submitDelegatedAttestation`
 10. widget shows success state with attestation UID and tx hash
 
 ---
@@ -114,7 +114,7 @@ Keep this narrow. Do **not** build advanced proof systems yet.
 - `tx-interaction` proof type in attestation (see common.schema.json)
 - automatic DID construction from game URL (`did:web:{domain}` via `@oma3/omatrust/identity`)
 - verified labeling
-- delegated attestation via `@oma3/omatrust` SDK → `reputation.omatrust.org` relay
+- delegated attestation via `@oma3/omatrust` SDK → `api.omatrust.org` relay
 - wallet address passthrough via embed URL query param (optional)
 - user-review EAS schema (UID: `0x7ab3911527e5e47eaab9f5a2c571060026532dde8cb4398185553053963b2a47`)
 - Vercel-friendly architecture
@@ -403,7 +403,7 @@ type ProofCheckResult = {
 
 ### Existing infrastructure
 
-The delegated attestation API is already deployed at `reputation.omatrust.org`. See `developer-docs/docs/api/delegated-attestation.md` for full API docs.
+The delegated attestation API is already deployed at `api.omatrust.org`. See `developer-docs/docs/api/delegated-attestation.md` for full API docs.
 
 ### SDK
 
@@ -478,12 +478,12 @@ See `rep-attestation-tools-evm-solidity/schemas-json/common.schema.json` for the
 
 The widget submits to:
 ```
-POST https://reputation.omatrust.org/api/eas/delegated-attest
+POST https://widgets.omatrust.org/api/eas/delegated-attest
 ```
 
 Nonce endpoint:
 ```
-GET https://reputation.omatrust.org/api/eas/nonce?attester={walletAddress}
+GET https://widgets.omatrust.org/api/eas/nonce?attester={walletAddress}
 ```
 
 ### Widget attestation flow
@@ -538,7 +538,7 @@ The host-mediated signing bridge (`postMessage`) is an untrusted channel in both
 
 #### What the host must validate before signing
 
-- `event.origin` matches the expected widget origin (e.g., `reputation.omatrust.org`)
+- `event.origin` matches the expected widget origin (e.g., `widgets.omatrust.org`)
 - `event.data.type` is exactly `"omatrust:signTypedData"`
 - EIP-712 domain `name` is `"EAS"` and `version` is `"1.4.0"`
 - `chainId` in the domain matches the expected attestation chain

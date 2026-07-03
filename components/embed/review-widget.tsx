@@ -388,7 +388,7 @@ export function ReviewWidget({ config, previewMode = false }: ReviewWidgetProps)
                 }}
                 appMetadata={{
                   name: "OMATrust Review Widget",
-                  url: "https://reputation.omatrust.org",
+                  url: "https://widgets.omatrust.org",
                 }}
               />
             ) : null}

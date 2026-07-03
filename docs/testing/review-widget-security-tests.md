@@ -8,7 +8,7 @@ This document is for **QA and developers** validating that the hosted widget and
 |-------|------------------|
 | End-user wallet keys | Phishing or signing unintended EIP-712 (e.g. different schema, chain, or recipient). |
 | OMATrust relay / backend | Accepting forged or replayed delegated attestations; resource abuse. |
-| Widget origin server (`reputation.omatrust.org` / Vercel app) | SSRF via proof-check, header/CSP misconfiguration, open proxy abuse. |
+| Widget origin server (`widgets.omatrust.org` / Vercel app) | SSRF via proof-check, header/CSP misconfiguration, open proxy abuse. |
 | Game developer’s site | Malicious page coerces signing or confuses users; iframe + `postMessage` confusion. |
 
 The **widget repository does not hold private keys**. Critical cryptographic enforcement for delegated attestation is on the **relay** (`api.omatrust.org`). These tests still prove the **widget and its Next.js routes** do not weaken that model.

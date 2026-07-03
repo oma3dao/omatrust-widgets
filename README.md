@@ -61,7 +61,7 @@ See the host example at `/widgets/reviews/examples/host` for a working demo of b
 2. If yes, the review is labeled "Verified User"
 3. The user enters a rating (1–5) and optional review text
 4. The widget builds an EIP-712 typed data structure for a User Review attestation and prompts the user to sign
-5. The signed payload is submitted to the delegated attestation API at `app.omatrust.org`, which submits it on-chain to EAS on OMAChain
+5. The signed payload is submitted to the delegated attestation API at `api.omatrust.org`, which submits it on-chain to EAS on OMAChain
 6. The widget shows the attestation UID and transaction hash
 
 ### Architecture
@@ -149,7 +149,7 @@ Configure custom domains per environment as described in the Deployment Guide (S
 
 ### Step 4: Iframe headers
 
-The widget embed route must be loadable in third-party iframes. A `vercel.json` is included in the repo that explicitly allows framing on the embed route via `X-Frame-Options: ALLOWALL` and `Content-Security-Policy: frame-ancestors *`. No manual configuration needed — it deploys with the project.
+The widget embed route must be loadable in third-party iframes. A `vercel.json` is included in the repo that explicitly allows framing on the embed route via `Content-Security-Policy: frame-ancestors *`. No manual configuration needed — it deploys with the project.
 
 ### Public URL reference
 

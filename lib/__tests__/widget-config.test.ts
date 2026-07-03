@@ -100,8 +100,8 @@ describe("getBaseUrl", () => {
     expect(getBaseUrl("https://custom.example")).toBe("https://custom.example")
   })
 
-  it("defaults to production reputation origin", () => {
-    expect(getBaseUrl()).toBe("https://reputation.omatrust.org")
+  it("defaults to production widgets origin", () => {
+    expect(getBaseUrl()).toBe("https://widgets.omatrust.org")
   })
 })
 
