@@ -34,7 +34,7 @@ type FormErrors = Partial<Record<keyof BuilderFormValues, string>>
 const navItems = [
   { href: REVIEW_WIDGET_CREATE_PATH, label: "Widget Builder", external: false },
   { href: REVIEW_WIDGET_HOST_EXAMPLE_PATH, label: "Host Example", external: false },
-  { href: "https://reputation.omatrust.org", label: "Reputation", external: true },
+  { href: "https://app.omatrust.org", label: "Reputation", external: true },
   { href: "https://registry.omatrust.org", label: "Registry", external: true },
   { href: "https://docs.omatrust.org", label: "Docs", external: true },
 ]

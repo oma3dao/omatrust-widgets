@@ -28,8 +28,9 @@ export type WidgetQueryConfig = WidgetConfig & {
 export const REVIEW_WIDGET_CREATE_PATH = "/widgets/reviews/create"
 export const REVIEW_WIDGET_EMBED_PATH = "/widgets/reviews/embed"
 export const REVIEW_WIDGET_HOST_EXAMPLE_PATH = "/widgets/reviews/examples/host"
+export const REVIEW_WIDGET_SEPOLIA_HOST_EXAMPLE_PATH = "/widgets/reviews/examples/sepolia-host"
 export const REVIEW_WIDGET_NAMESPACE_PATH = "/widgets/reviews"
-export const DEFAULT_PUBLIC_ORIGIN = "https://reputation.omatrust.org"
+export const DEFAULT_PUBLIC_ORIGIN = "https://widgets.omatrust.org"
 
 export function getBaseUrl(baseUrl?: string) {
   if (baseUrl) {

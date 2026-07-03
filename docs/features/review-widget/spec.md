@@ -10,8 +10,8 @@ Provide an embeddable iframe widget that lets users submit on-chain reviews for 
 
 | Resource                  | URL                                                                                  |
 |---------------------------|--------------------------------------------------------------------------------------|
-| Widget builder (live)     | https://reputation.omatrust.org/widgets/reviews/create                               |
-| Host example (live)       | https://reputation.omatrust.org/widgets/reviews/examples/host                        |
+| Widget builder (live)     | https://widgets.omatrust.org/widgets/reviews/create                                  |
+| Host example (live)       | https://widgets.omatrust.org/widgets/reviews/examples/host                           |
 | Developer docs: Overview  | https://docs.omatrust.org/widgets/overview                                           |
 | Developer docs: Basic     | https://docs.omatrust.org/widgets/basic-mode                                         |
 | Developer docs: Integrated| https://docs.omatrust.org/widgets/integrated-mode                                    |
