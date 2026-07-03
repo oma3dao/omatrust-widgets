@@ -10,7 +10,7 @@ A hosted widget that lets users rate EVM web3 apps using the same wallet they al
 
 ### For developers
 
-1. Go to the widget builder at `reputation.omatrust.org/widgets/reviews/create`
+1. Go to the widget builder at `widgets.omatrust.org/widgets/reviews/create`
 2. Enter your app URL, one contract address, and the chain ID
 3. Click "Generate embed" and copy the iframe snippet
 4. Paste the snippet into your site
@@ -61,7 +61,7 @@ See the host example at `/widgets/reviews/examples/host` for a working demo of b
 2. If yes, the review is labeled "Verified User"
 3. The user enters a rating (1–5) and optional review text
 4. The widget builds an EIP-712 typed data structure for a User Review attestation and prompts the user to sign
-5. The signed payload is submitted to the delegated attestation API at `reputation.omatrust.org`, which submits it on-chain to EAS on OMAchain
+5. The signed payload is submitted to the delegated attestation API at `app.omatrust.org`, which submits it on-chain to EAS on OMAChain
 6. The widget shows the attestation UID and transaction hash
 
 ### Architecture
@@ -109,7 +109,9 @@ pnpm typecheck   # TypeScript check without emitting
 
 ## Deploying to Vercel
 
-This project deploys as its own Vercel project but is served under the `reputation.omatrust.org` domain via rewrites. This keeps the widget codebase isolated from the main reputation frontend while sharing the same public URL.
+> **Environment variable values and Vercel environment configuration** are documented in the [Deployment Guide](https://github.com/oma3dao/omatrust-docs/blob/main/operations/deployment-rep-attestation.md) (Section 7). This section covers the project-specific setup steps.
+
+This project deploys as its own Vercel project with its own domain (`widgets.omatrust.org`).
 
 ### Step 1: Create the Vercel project
 
@@ -119,8 +121,6 @@ This project deploys as its own Vercel project but is served under the `reputati
 4. Root directory: leave as repository root
 5. Deploy
 
-The project will be assigned a `.vercel.app` URL (e.g., `omatrust-widgets.vercel.app`). The rewrite rules in the reputation project already point to this URL.
-
 ### Step 2: Set environment variables
 
 In the Vercel project settings → Environment Variables, add:
@@ -128,68 +128,36 @@ In the Vercel project settings → Environment Variables, add:
 | Variable                         | Description                                                          |
 |----------------------------------|----------------------------------------------------------------------|
 | `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` | Thirdweb client ID for Insight API and wallet connect                |
-| `NEXT_PUBLIC_ASSET_PREFIX`       | The widgets project's own Vercel URL (e.g., `https://omatrust-widgets.vercel.app`). Required so CSS/JS assets load correctly when served through the reputation project's rewrite. |
+| `NEXT_PUBLIC_ACTIVE_CHAIN`       | `omachain-mainnet` for production, `omachain-testnet` for public-test|
 
-Add more as integrations are wired up (e.g., attestation relay URL if it becomes configurable).
+Optional (leave unset unless needed):
 
-### Step 3: Rewrite rules and iframe headers
+| Variable                         | Description                                                                       |
+|----------------------------------|-----------------------------------------------------------------------------------|
+| `NEXT_PUBLIC_ASSET_PREFIX`       | Only set if iframe assets fail to load. Use the widgets project's own Vercel URL. |
+| `NEXT_PUBLIC_RELAY_BASE_URL`     | Only for local dev. Defaults to `https://api.omatrust.org`.                       |
 
-The rewrite rules and iframe header overrides have already been added to `rep-attestation-frontend/vercel.json`. They proxy `/widgets/*` and `/api/proof/*` to the widgets Vercel project, and allow the embed route to be loaded in third-party iframes.
+### Step 3: Configure domains
 
-The rewrites added to `rep-attestation-frontend/vercel.json`:
+Configure custom domains per environment as described in the Deployment Guide (Sections 4 and 7).
 
-```json
-{
-  "rewrites": [
-    {
-      "source": "/widgets/:path*",
-      "destination": "https://omatrust-widgets.vercel.app/widgets/:path*"
-    },
-    {
-      "source": "/api/proof/:path*",
-      "destination": "https://omatrust-widgets.vercel.app/api/proof/:path*"
-    }
-  ]
-}
-```
+| Environment | Domain                       |
+|-------------|------------------------------|
+| Production  | `widgets.omatrust.org`       |
+| public-test | `test.widgets.omatrust.org`  |
+| Development | `dev.widgets.omatrust.org`   |
 
-The iframe header override added to the `headers` array in the same file (must appear before the catch-all `/(.*)`  entry):
+### Step 4: Iframe headers
 
-```json
-{
-  "source": "/widgets/reviews/embed",
-  "headers": [
-    {
-      "key": "X-Frame-Options",
-      "value": "ALLOWALL"
-    },
-    {
-      "key": "Content-Security-Policy",
-      "value": "frame-ancestors *;"
-    }
-  ]
-}
-```
+The widget embed route must be loadable in third-party iframes. A `vercel.json` is included in the repo that explicitly allows framing on the embed route via `X-Frame-Options: ALLOWALL` and `Content-Security-Policy: frame-ancestors *`. No manual configuration needed — it deploys with the project.
 
-This overrides the global `X-Frame-Options: SAMEORIGIN` so the embed route can be loaded in iframes on third-party sites.
+### Public URL reference
 
-If the widgets project Vercel URL differs from `omatrust-widgets.vercel.app`, update the `destination` values in the `rewrites` array.
-
-### Step 4: Redeploy the reputation project
-
-If the `vercel.json` changes haven't been deployed yet, push them to the `rep-attestation-frontend` repo and redeploy. The rewrite rules take effect on the next deployment.
-
-### How the URL mapping works
-
-After deployment, the public URLs resolve like this:
-
-| Public URL                                                    | Proxied to                                                          |
-|---------------------------------------------------------------|---------------------------------------------------------------------|
-| `reputation.omatrust.org/widgets/reviews/create`              | `omatrust-widgets.vercel.app/widgets/reviews/create`                |
-| `reputation.omatrust.org/widgets/reviews/embed?...`           | `omatrust-widgets.vercel.app/widgets/reviews/embed?...`             |
-| `reputation.omatrust.org/widgets/reviews/examples/host`       | `omatrust-widgets.vercel.app/widgets/reviews/examples/host`         |
-| `reputation.omatrust.org/api/proof/check`                     | `omatrust-widgets.vercel.app/api/proof/check`                       |
-
-The widgets project can also be accessed directly at its `.vercel.app` URL for testing, but production embed snippets should use the `reputation.omatrust.org` URLs.
+| URL                                                    | Purpose                                        |
+|--------------------------------------------------------|------------------------------------------------|
+| `widgets.omatrust.org/widgets/reviews/create`          | Builder UI — generate embed snippets           |
+| `widgets.omatrust.org/widgets/reviews/embed?...`       | Embeddable widget — loaded inside iframes      |
+| `widgets.omatrust.org/widgets/reviews/examples/host`   | Integration demo — wallet passthrough example  |
+| `widgets.omatrust.org/api/proof/check`                 | Proof-check API — verifies wallet interaction  |
 
 <!-- TODO: Add developer instructions for contract-to-did:web binding attestation setup -->
